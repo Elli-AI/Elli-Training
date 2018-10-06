@@ -10,7 +10,14 @@ import codecs
 import numpy as np
 import unicodedata
 import lib.hyperparams as hp
+from lib.utils import get_spectrograms
 
+def split_data(X, y, validation_split=.2, setName=("Training Set", "Test Set")):
+    num_train_samples = int((1 - validation_split)*len(X))
+    X_train, y_train, X_test, y_test = X[:num_train_samples], y[:num_train_samples], X[num_train_samples:], y[num_train_samples:]
+    print("\t %s: %s %s" % (setName[0], len(X_train), len(y_train)))
+    print("\t %s: %s %s" % (setName[1], len(X_test), len(y_test)))
+    return X_train, X_test, y_train, y_test
 
 def load_vocab():
     char2idx = {char: idx for idx, char in enumerate("PE abcdefghijklmnopqrstuvwxyz'.?")}
@@ -29,7 +36,6 @@ def text_normalize(text):
 class DataManager(object):
 
     def __init__(self, dataset_name=None, dataset_path=None):
-
         self.dataset_name = dataset_name
         self.dataset_path = dataset_path
 
@@ -54,7 +60,7 @@ class DataManager(object):
     def _load_synthesis(self):
         # Load vocabulary
         char2idx, idx2char = load_vocab()
-        fpaths, text_lengths, texts = [], [], []
+        wavs, text_lengths, texts = [], [], []
 
         transcript = os.path.join(self.dataset_path, 'metadata.csv')
         lines = codecs.open(transcript, 'r', 'utf-8').readlines()
@@ -63,12 +69,13 @@ class DataManager(object):
             fname, text = line.strip().split("|")
 
             fpath = os.path.join(self.dataset_path , "wavs", fname + ".wav")
-            fpaths.append(fpath)
+            wavs.append(get_spectrograms(fpath))
 
             text = text_normalize(text) + "E" # E: EOS
             text = [char2idx[char] for char in text]
 
             text_lengths.append(len(text))
             texts.append(np.array(text, np.int32).tostring())
+            # texts.append(text)
 
-        return fpaths, text_lengths, texts
+        return wavs, text_lengths, texts
