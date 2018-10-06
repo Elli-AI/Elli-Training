@@ -15,6 +15,13 @@ var/
 .installed.cfg
 *.egg
 
-DO_NOT_UPLOAD.TXT
+.floyddata
+.floydexpt
+.floydignore
+floyd.yml
 
+logs/*
 models/
+data/private/*
+
+floyd_requirements.txt
